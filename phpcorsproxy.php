@@ -34,8 +34,8 @@
 
 class PHPCorsProxyConfig {
     public $proxies = array();
-    public $upstream_headers = array("Accept", "Content-Type");
-    public $downstream_headers = array("Content-Type");
+    public $upstreamHeaders = array("Accept", "Content-Type");
+    public $downstreamHeaders = array("Content-Type");
 
     public function addProxy($url, $prefix) {
         array_push($this->proxies, array($url, $prefix));
@@ -55,7 +55,7 @@ class PHPCorsProxy {
         $incomingHeaders = apache_request_headers();
 
         $newHeaders = array();
-        foreach ($config->upstream_headers as $h) array_push($newHeaders, $h . ": " . $incomingHeaders[$h]);
+        foreach ($this->config->upstreamHeaders as $h) array_push($newHeaders, $h . ": " . $incomingHeaders[$h]);
 
         foreach ($this->config->proxies as $item) {
             $string = "/" . $item[1] . "([^\?]*)(\?.*)?/";
@@ -82,7 +82,9 @@ class PHPCorsProxy {
 
                 curl_close($ch);
 
-                foreach ($config->downstream_headers as $h) header($h . ": " . $headers[$h]);
+                foreach ($this->config->downstreamHeaders as $h) {
+                  header($h . ": " . $headers[$h]);
+                }
 
                 echo $body;
             }
