@@ -49,6 +49,7 @@ class PHPCorsProxy {
 
     public function serviceRequest() {
         $postData = file_get_contents("php://input");
+        $postFields = substr_count($postData, "&") + 1;
         echo $postData;
         foreach ($this->config as $item) {
             $string = "/" . $item[1] . "([^\?]*)(\?.*)?/";
@@ -56,8 +57,10 @@ class PHPCorsProxy {
                 $ch = curl_init();
                 $url = $item[0] . $matches[1] . $matches[2];
                 curl_setopt($ch, CURLOPT_URL, $item[0] . $matches[1] . $matches[2]);
-                curl_setopt($ch, CURLOPT_HEADER, false);
+                curl_setopt($ch, CURLOPT_HEADER, true);
                 curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+                curl_setopt($ch, CURLOPT_POST, count($_POST));
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
 
                 curl_exec($ch);
 
