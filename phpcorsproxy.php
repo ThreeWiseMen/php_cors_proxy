@@ -47,7 +47,32 @@ class PHPCorsProxy {
         $this->config = array_merge($this->config, $config);
     }
 
+<<<<<<< HEAD
     public function serviceRequest() {
 // Do the work!
     }
+=======
+  public function serviceRequest() {
+    if (preg_match('/^([^\?]*)(\?.*)?$/', $_SERVER['REQUEST_URI'], $matches) > 0) {
+      $path = $matches[1];
+      if (count($matches)>2) {
+        $args = $matches[2];
+      }
+    }
+    
+    echo("Path: $path<br>");
+    echo("Args: $args<br>");
+
+    $postdata = file_get_contents("php://input");
+    echo("Post Data: $postdata<br>");
+    // Do the work!
+  }
+>>>>>>> playing with params
 }
+
+$config = new PHPCORSProxyConfig();
+$config->addProxy("http://coin-toss.heroku.com", "gameon");
+$proxy = new PHPCORSProxy($config);
+$proxy->serviceRequest();
+
+?>
