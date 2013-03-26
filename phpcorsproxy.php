@@ -65,7 +65,6 @@ class PHPCorsProxy {
                 curl_setopt($ch, CURLOPT_URL, $item[0] . $matches[1] . $matches[2]);
                 curl_setopt($ch, CURLOPT_HEADER, true);
                 curl_setopt($ch, CURLOPT_VERBOSE, true);
-                curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
                 curl_setopt($ch, CURLOPT_POST, count($_POST));
                 curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
