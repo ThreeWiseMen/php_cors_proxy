@@ -54,7 +54,7 @@ class PHPCorsProxy {
         $args = $matches[2];
       }
     }
-    
+
     echo("Path: $path<br>");
     echo("Args: $args<br>");
 
