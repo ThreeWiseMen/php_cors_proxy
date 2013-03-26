@@ -33,7 +33,7 @@
  */
 
 class PHPCorsProxyConfig {
-    protected $proxies = array();
+    public $proxies = array();
 
     public function addProxy($url, $prefix) {
         array_push($this->proxies, array($url, $prefix));
@@ -44,29 +44,32 @@ class PHPCorsProxy {
     protected $config = array();
 
     public function __construct($config = array()) {
-        $this->config = array_merge($this->config, $config);
+        $this->config = $config;
     }
 
-  public function serviceRequest() {
-    if (preg_match('/^([^\?]*)(\?.*)?$/', $_SERVER['REQUEST_URI'], $matches) > 0) {
-      $path = $matches[1];
-      if (count($matches)>2) {
-        $args = $matches[2];
-      }
+    public function serviceRequest() {
+        $postData = file_get_contents("php://input");
+        echo $postData;
+        foreach ($this->config as $item) {
+            $string = "/" . $item[1] . "([^\?]*)(\?.*)?/";
+            if (preg_match($string, $_SERVER['REQUEST_URI'], $matches) > 0) {
+                $ch = curl_init();
+                $url = $item[0] . $matches[1] . $matches[2];
+                curl_setopt($ch, CURLOPT_URL, $item[0] . $matches[1] . $matches[2]);
+                curl_setopt($ch, CURLOPT_HEADER, false);
+                curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+
+                curl_exec($ch);
+
+                curl_close($ch);
+            }
+        }
     }
-
-    echo("Path: $path<br>");
-    echo("Args: $args<br>");
-
-    $postdata = file_get_contents("php://input");
-    echo("Post Data: $postdata<br>");
-    // Do the work!
-  }
 }
 
 $config = new PHPCORSProxyConfig();
 $config->addProxy("http://coin-toss.heroku.com", "gameon");
-$proxy = new PHPCORSProxy($config);
+$proxy = new PHPCORSProxy($config->proxies);
 $proxy->serviceRequest();
 
 ?>
