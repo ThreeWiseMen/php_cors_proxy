@@ -50,6 +50,12 @@ class PHPCorsProxy {
     public function serviceRequest() {
         $postData = file_get_contents("php://input");
         $postFields = substr_count($postData, "&") + 1;
+        $incomingHeaders = apache_request_headers();
+
+        $newHeaders = array(
+            'Accept: ' . $incomingHeaders['Accept'],
+            'Content-Type: ' . $incomingHeaders['Content-Type']
+        );
 
         foreach ($this->config as $item) {
             $string = "/" . $item[1] . "([^\?]*)(\?.*)?/";
@@ -57,22 +63,36 @@ class PHPCorsProxy {
                 $ch = curl_init();
                 $url = $item[0] . $matches[1] . $matches[2];
                 curl_setopt($ch, CURLOPT_URL, $item[0] . $matches[1] . $matches[2]);
-                curl_setopt($ch, CURLOPT_HEADER, false);
+                curl_setopt($ch, CURLOPT_HEADER, true);
+                curl_setopt($ch, CURLOPT_VERBOSE, true);
                 curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
                 curl_setopt($ch, CURLOPT_POST, count($_POST));
                 curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, $newHeaders);
 
-                curl_exec($ch);
+                $result = curl_exec($ch);
+
+                list($header, $body) = explode("\r\n\r\n", $result);
+                $headerStrings = explode("\r\n", $header);
+                $headers = array();
+                foreach ($headerStrings as $headerString) {
+                    $tmp = explode(": ", $headerString);
+                    $headers[$tmp[0]] = $tmp[1];
+                }
 
                 curl_close($ch);
+
+                header('Content-Type: ' . $headers['Content-Type']);
+
+                echo $body;
             }
         }
     }
 }
 
 $config = new PHPCORSProxyConfig();
-$config->addProxy("http://coin-toss.heroku.com", "gameon");
+$config->addProxy("http://coin-toss.herokuapp.com", "gameon");
 $proxy = new PHPCORSProxy($config->proxies);
 $proxy->serviceRequest();
-
 ?>
