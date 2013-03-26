@@ -21,4 +21,6 @@ would broker to
 
     http://origin-website.com/api/method/parameters?other=params
 
+You may wish to utilize an .htaccess file to hide the exposure of the
+proxy script's filename.
 
