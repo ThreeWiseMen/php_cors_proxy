@@ -34,6 +34,8 @@
 
 class PHPCorsProxyConfig {
     public $proxies = array();
+    public $upstream_headers = array("Accept", "Content-Type");
+    public $downstream_headers = array("Content-Type");
 
     public function addProxy($url, $prefix) {
         array_push($this->proxies, array($url, $prefix));
@@ -52,12 +54,10 @@ class PHPCorsProxy {
         $postFields = substr_count($postData, "&") + 1;
         $incomingHeaders = apache_request_headers();
 
-        $newHeaders = array(
-            'Accept: ' . $incomingHeaders['Accept'],
-            'Content-Type: ' . $incomingHeaders['Content-Type']
-        );
+        $newHeaders = array();
+        foreach ($config->upstream_headers as $h) array_push($newHeaders, $h . ": " . $incomingHeaders[$h]);
 
-        foreach ($this->config as $item) {
+        foreach ($this->config->proxies as $item) {
             $string = "/" . $item[1] . "([^\?]*)(\?.*)?/";
             if (preg_match($string, $_SERVER['REQUEST_URI'], $matches) > 0) {
                 $ch = curl_init();
@@ -82,7 +82,7 @@ class PHPCorsProxy {
 
                 curl_close($ch);
 
-                header('Content-Type: ' . $headers['Content-Type']);
+                foreach ($config->downstream_headers as $h) header($h . ": " . $headers[$h]);
 
                 echo $body;
             }
@@ -92,6 +92,6 @@ class PHPCorsProxy {
 
 $config = new PHPCORSProxyConfig();
 $config->addProxy("http://coin-toss.herokuapp.com", "gameon");
-$proxy = new PHPCORSProxy($config->proxies);
+$proxy = new PHPCORSProxy($config);
 $proxy->serviceRequest();
 ?>
