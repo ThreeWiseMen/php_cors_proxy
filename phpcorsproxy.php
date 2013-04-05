@@ -69,7 +69,6 @@ class PHPCorsProxy {
                 curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
                 curl_setopt($ch, CURLOPT_HTTPHEADER, $newHeaders);
-
                 $result = curl_exec($ch);
 
                 list($header, $body) = explode("\r\n\r\n", $result);
@@ -80,10 +79,12 @@ class PHPCorsProxy {
                     $headers[$tmp[0]] = $tmp[1];
                 }
 
+                $http_status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
                 curl_close($ch);
 
+                header($http_status);
                 foreach ($this->config->downstreamHeaders as $h) {
-                  header($h . ": " . $headers[$h]);
+                    header($h . ": " . $headers[$h]);
                 }
 
                 echo $body;
